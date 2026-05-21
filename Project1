@@ -1,0 +1,237 @@
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <cstring>
+
+using namespace std;
+
+class Student
+{
+private:
+    int rollNo;
+    char name[50];
+    int age;
+    char course[50];
+
+public:
+    void addStudent()
+    {
+        cout << "\nEnter Roll Number: ";
+        cin >> rollNo;
+
+        cin.ignore();
+
+        cout << "Enter Name: ";
+        cin.getline(name, 50);
+
+        cout << "Enter Age: ";
+        cin >> age;
+
+        cin.ignore();
+
+        cout << "Enter Course: ";
+        cin.getline(course, 50);
+    }
+
+    void displayStudent()
+    {
+        cout << left << setw(10) << rollNo
+             << setw(20) << name
+             << setw(10) << age
+             << setw(20) << course << endl;
+    }
+
+    int getRollNo()
+    {
+        return rollNo;
+    }
+
+    void updateStudent()
+    {
+        cin.ignore();
+
+        cout << "Enter New Name: ";
+        cin.getline(name, 50);
+
+        cout << "Enter New Age: ";
+        cin >> age;
+
+        cin.ignore();
+
+        cout << "Enter New Course: ";
+        cin.getline(course, 50);
+    }
+};
+
+void addRecord()
+{
+    Student s;
+
+    ofstream file("students.dat", ios::binary | ios::app);
+
+    s.addStudent();
+
+    file.write((char *)&s, sizeof(s));
+
+    file.close();
+
+    cout << "\nStudent Record Added Successfully!\n";
+}
+void displayRecords()
+{
+    Student s;
+
+    ifstream file("students.dat", ios::binary);
+
+    cout << "\n---------------- Student Records ----------------\n";
+
+    cout << left << setw(10) << "RollNo"
+         << setw(20) << "Name"
+         << setw(10) << "Age"
+         << setw(20) << "Course" << endl;
+
+    cout << "--------------------------------------------------------------\n";
+
+    while (file.read((char *)&s, sizeof(s)))
+    {
+        s.displayStudent();
+    }
+
+    file.close();
+}
+
+void updateRecord()
+{
+    Student s;
+
+    fstream file("students.dat", ios::binary | ios::in | ios::out);
+
+    int roll;
+    bool found = false;
+
+    cout << "\nEnter Roll Number to Update: ";
+    cin >> roll;
+
+    while (file.read((char *)&s, sizeof(s)))
+    {
+        if (s.getRollNo() == roll)
+        {
+            cout << "\nCurrent Record Found\n";
+
+            s.displayStudent();
+
+            cout << "\nEnter New Details\n";
+
+            s.updateStudent();
+
+            int pos = (-1) * sizeof(s);
+
+            file.seekp(pos, ios::cur);
+
+            file.write((char *)&s, sizeof(s));
+
+            found = true;
+
+            cout << "\nRecord Updated Successfully!\n";
+
+            break;
+        }
+    }
+
+    if (!found)
+    {
+        cout << "\nRecord Not Found!\n";
+    }
+
+    file.close();
+}
+
+void deleteRecord()
+{
+    Student s;
+
+    ifstream file("students.dat", ios::binary);
+
+    ofstream temp("temp.dat", ios::binary);
+
+    int roll;
+    bool found = false;
+
+    cout << "\nEnter Roll Number to Delete: ";
+    cin >> roll;
+
+    while (file.read((char *)&s, sizeof(s)))
+    {
+        if (s.getRollNo() == roll)
+        {
+            found = true;
+        }
+        else
+        {
+            temp.write((char *)&s, sizeof(s));
+        }
+    }
+
+    file.close();
+    temp.close();
+
+    remove("students.dat");
+    rename("temp.dat", "students.dat");
+
+    if (found)
+    {
+        cout << "\nRecord Deleted Successfully!\n";
+    }
+    else
+    {
+        cout << "\nRecord Not Found!\n";
+    }
+}
+
+int main()
+{
+    int choice;
+
+    do
+    {
+        cout << "\n========== Student Management System ==========\n";
+
+        cout << "1. Add Student\n";
+        cout << "2. Display Students\n";
+        cout << "3. Update Student\n";
+        cout << "4. Delete Student\n";
+        cout << "5. Exit\n";
+
+        cout << "\nEnter Your Choice: ";
+        cin >> choice;
+
+        switch (choice)
+        {
+        case 1:
+            addRecord();
+            break;
+
+        case 2:
+            displayRecords();
+            break;
+
+        case 3:
+            updateRecord();
+            break;
+
+        case 4:
+            deleteRecord();
+            break;
+
+        case 5:
+            cout << "\nExiting Program...\n";
+            break;
+
+        default:
+            cout << "\nInvalid Choice! Try Again.\n";
+        }
+
+    } while (choice != 5);
+
+    return 0;
+}
